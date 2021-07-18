@@ -1,1 +1,4 @@
 .vscode/
+pipfile
+pipfile.lock
+db.sqlite3
