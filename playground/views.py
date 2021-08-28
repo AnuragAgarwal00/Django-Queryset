@@ -29,3 +29,26 @@ def sorting(request):
     product = Product.objects.latest('unit_price')
 
     return render(request, 'hello.html', {'name': 'Anurag', 'products': list(queryset)})
+
+def selecting_fields_to_query(request):
+    # when you query objects by defaults all fields are read from db
+    # what if u r interested only in specific fields
+    # we have an inner join between product & collection table
+    # values method returns dictionary obj
+    queryset = Product.objects.values('id', 'title', 'collection__title')
+
+    # we have another method called values list
+    # This method returnd tuples instead of dictionary
+    # each object will be a tuple of 3 values
+    queryset = Product.objects.values_list('id', 'title', 'collection__title')
+
+def exercise_one(request):
+    """Write a queryto select products that have been ordered
+    & Sort them by title"""
+    queryset = Product.objects.filter(id__in=OrderItem.objects.values('product_id').distinct()).order_by('title')
+
+    return render(request, 'hello.html', {'products': queryset})
+
+
+
+
