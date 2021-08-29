@@ -2,8 +2,9 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
+from django.db.models.aggregates import Min, Max, Avg, Count, Sum
 
-from store.models import Product, OrderItem
+from store.models import Product, OrderItem, Order
 
 def sorting(request):
     # Sorting
@@ -64,6 +65,79 @@ def deferring_fields(request):
     queryset = Product.objects.defer('description')
 
     return render(request, 'hello.html', {'products': queryset})
+
+def selecting_realted_objects(request):
+    # when we ask for products django will only query the product table not foreign key or M2M
+    # It's not going to query the related table unless you specifically instruct it to do it so
+    queryset = Product.objects.all()
+
+    # Here we want to pre-load products with their collection
+    # when we use select related method django will create join between our tables
+    # we use select related when the end of relation has one instance
+    # eg => A product has one collection
+    queryset = Product.objects.select_related('collection').all()
+
+    # We have another method called prefetch related
+    # we use prefetch related when the other end of relationship has many objects
+    # eg => each product can have multiple promotions
+    # to pre-load the promotions we use prefetch related
+    # We gave 2 seperate query in db for products &b other inner join for promotions
+    # Django reads these sets & popultates in memory
+    queryset = Product.objects.prefetch_related('promotions').all()
+
+    # we can also combine these 2 methods
+    # eg => you wnats to know All the products with their promotions & collection
+    # both these methods returns a queryset and thats why we can chain these methods after one other
+    # order of these methods doesn't matter
+    queryset = Product.objects.select_related('collection').prefetch_related('promotions').all()
+
+    return render(request, 'hello.html', {'products': queryset})
+
+
+def exercise_two(request):
+    """Get the last 5 orders with their Customer and items including the product refrencing"""
+    queryset = Order.objects.select_related('customer').prefetch_related('orderitem_set__product') .order_by('-placed_at')[:5]
+
+    return render(request, 'hello.html', {'products': queryset})
+
+def aggregating_Objects(request):
+    """Sometimes u wants to compute summaries like Max or Avg price of our products.
+    This is where we use Aggregate method."""
+
+    # Let's say we wants to count our products
+    # the proper way to count the no. of products is to use id or the primary_key
+    # The Aggregate method doesn't returns a queryset becz when we calculate the summary of value it really doesnt make any sense to do extra with it
+    # Here aggregate method returns a dictionarey obj
+    # Result => {'id__count': 1000} bcz we used id column for counting obj
+    result = Product.objects.aggregate(Count('id'))
+
+    # we can easily change the name of the key
+    result = Product.objects.aggregate(count=Count('id'))
+
+    # we can also calcuate min price
+    result = Product.objects.aggregate(count=Count('id'), min_price=Min('unit_price'))
+
+    # Since aggregate is one of the method of queryset, we can apply wherever we have a queryset
+    result = Product.objects.filter(collection__id=1).aggregate(count=Count('id'), max_price=Max('unit_price'))
+
+    return render(request, 'hello.html', {'products': queryset})
+
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
