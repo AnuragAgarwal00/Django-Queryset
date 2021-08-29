@@ -1,8 +1,9 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Q, Value, F
+from django.db.models import Q, Value, F, Func
 from django.db.models.aggregates import Min, Max, Avg, Count, Sum
+from django.db.models.functions import Concat
 
 from store.models import Product, OrderItem, Order, Customer
 
@@ -142,6 +143,28 @@ def annotating_objects(request):
     queryset = Customer.objects.annotate(new_id=F('id') + 1)
 
     return render(request, 'hello.html', {'result': queryset})
+
+def calling_database_functions(request):
+    # we gonna give our customers a new field full_name
+    # This is where we gonna call concat func of a database engine
+    # Conact
+    full_name = Customer.objects.annotate(
+        full_name=Func(F('first_name'), 
+        Value(" "), 
+        F('last_name'), 
+        function="CONCAT"
+        ))
+
+    # There is also a shortcut to achieve the same results
+    # for space u need to wrap inside Value class becz django think " " is a column in our table
+    full_name = Customer.objects.annoate(Concat('first_name', Value(" "), 'last_name'))
+
+    # Just google django databse functions for exploring more
+    
+
+
+
+
 
 
 
