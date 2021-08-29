@@ -1,10 +1,10 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Q
+from django.db.models import Q, Value, F
 from django.db.models.aggregates import Min, Max, Avg, Count, Sum
 
-from store.models import Product, OrderItem, Order
+from store.models import Product, OrderItem, Order, Customer
 
 def sorting(request):
     # Sorting
@@ -121,6 +121,28 @@ def aggregating_Objects(request):
     result = Product.objects.filter(collection__id=1).aggregate(count=Count('id'), max_price=Max('unit_price'))
 
     return render(request, 'hello.html', {'products': queryset})
+
+def annotating_objects(request):
+    """ Sometimes you wanna add additional attributes to your objects while quering them.
+    This is where we use the annotate method.
+    Expressions Class in annoting objects:
+    Values : number, boolean, string
+    F : Using F class you can refrence field in the same or other tables
+    Func : for calling database functions
+    Aggregate: Max, Sum, Min, Count """
+
+    # Let's say while querying customers, you want to give every customer a new fields called "is_new= True"
+    queryset =  Customer.objects.annotate(is_new=Value(True))
+
+    # This time we wanna give customer a new field called new_id
+    queryset = Customer.objects.annotate(new_id=F('id'))
+
+    # We can also perform computations here
+    # Eg => we can add 1 to id to generate new id
+    queryset = Customer.objects.annotate(new_id=F('id') + 1)
+
+    return render(request, 'hello.html', {'result': queryset})
+
 
 
 
