@@ -160,7 +160,21 @@ def calling_database_functions(request):
     full_name = Customer.objects.annoate(Concat('first_name', Value(" "), 'last_name'))
 
     # Just google django databse functions for exploring more
-    
+
+    return render(request, 'hello.html', {'full_name': full_name})
+
+def grouping_data(request):
+    # Let's say we want to see no. of orders each customers has placed
+    # for reverse relationship we cannot use order_Set to count no. of orders
+    # In db we are selecting * from customer table & we are counting no. of orders
+    # & we have a left join between orders & customers table becz not every customer has a order
+    # finally we have group clause for grouping no of orders for each customer
+
+    queryset = Customer.objects.annotate(orders_count=Count('order'))
+
+    return render(request, 'hello.html', {'result': queryset})
+
+
 
 
 
