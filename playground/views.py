@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Q, Value, F, Func
+from django.db.models import Q, Value, F, Func, ExpressionWrapper
 from django.db.models.aggregates import Min, Max, Avg, Count, Sum
 from django.db.models.functions import Concat
 
@@ -173,6 +173,25 @@ def grouping_data(request):
     queryset = Customer.objects.annotate(orders_count=Count('order'))
 
     return render(request, 'hello.html', {'result': queryset})
+
+def working_with_epression_wrapper(request):
+    """Another derivate of expression class called ExpressionWrapper.
+    We use this class when building complex expressions."""
+
+    # Let's say we gonna annoate our products and give them a new field called discounted_price
+    If you run this query, you gonna get an exception
+    # Expression contains mixed types DecimalField, FloatField. You must set the output field
+    queryset = Product.objects.annotate(discounted_price=F('unit_price') * 0.8)
+
+    # To solve the above problem
+    discounted_price = ExpressionWrapper(F('unit_price') * 0.8, output_field=DecimalField())
+    queryset = Product.objects.annotate(discounted_price=discounted_price)
+
+    return render(request, 'hello.html', {'result': queryset})
+
+
+
+
 
 
 
