@@ -49,6 +49,26 @@ def exercise_one(request):
 
     return render(request, 'hello.html', {'products': queryset})
 
+def deferring_fields(request):
+    # with only we can specifiy the fields we want to read from the db
+    # How only is different from values method?
+    # with only method, you get instance of product class
+    # with values method you get dictionary objects
+    # Be careful while using the only method else you gonna end up sending extra query to db
+    queryset = Product.objects.only('id', 'title')
+
+    # We have another method that is opposite of only => defer
+    # with this method we csn defer loading of certain fields
+    # eg => we are interested in all the fields except description field
+    # Be careful while using the only method else you gonna end up sending extra query to db
+    queryset = Product.objects.defer('description')
+
+    return render(request, 'hello.html', {'products': queryset})
+
+
+
+
+
 
 
 
