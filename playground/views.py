@@ -4,8 +4,10 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q, Value, F, Func, ExpressionWrapper
 from django.db.models.aggregates import Min, Max, Avg, Count, Sum
 from django.db.models.functions import Concat
+from django.contrib.contenttypes.models import ContentType
 
 from store.models import Product, OrderItem, Order, Customer
+from tag.models import TaggedItem
 
 def sorting(request):
     # Sorting
@@ -188,19 +190,34 @@ def working_with_epression_wrapper(request):
     queryset = Product.objects.annotate(discounted_price=discounted_price)
 
     return render(request, 'hello.html', {'result': queryset})
+    
+def querying_generic_relationship(request):
+    """How to find tags for a given product?"""
+    # in database table => django_content_type, you can see all the models in our app 
+    # To find the tags of a given product, 1st we have to find the content-type id of the product model
+    # In databse the contenttype of Product model is 11, so once we find this, then we can go to the table TaggedItem & write a qauery to filter all records -
+    # where contenttype id equals 11 and object_id equaLS id of the product, whose tags we wanna find out
+
+    # 1st we need to find the contenttype id   for the product model
+    # in tagged_item table we have a field called tag_id, which is ForeignKey to Tag class
+    # the actuakl tag in not storef in tagged_item table it is stored in tags_tag
+    # so we need to pre-load  tag_id field because we will end up sending extra query to db
+
+    content_type = ContentType.objects.get_for_model(Product)
+    queryset = TaggedItem.objects \
+        .select_related('tag') \
+        .filter(
+            content_type=content_type,
+            object_id=1
+    )
+    # we have 2 query
+    # 1st query  id for finding contenttype of product model
+    # 2nd query  is for reading tags 4 given product
+
+    return render(request, 'hello.html', {'result': list(queryset)})
 
 
-
-
-
-
-
-
-
-
-
-
-
+    
 
 
     
