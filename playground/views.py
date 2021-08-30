@@ -221,6 +221,35 @@ def custom_manager(request):
 
     return render(request, 'hello.html', {'result': list(queryset)})
 
+def understanding_queryset_cache(request):
+    """Caching Mechanism built into queryset"""
+    # when we convert this queryset into list, django is gonna evalute this queryset & that's when it's go into db to get the results
+    # This is an expensive operation becz reading data from the disk is always slower than reading it from the memory
+    # So when django evaluates this query & gets the data from the database it is goona store soomewhere in memory called queryset cached
+    # So 2nd time when we convert this queryset into list django is not gonna evalauate this query again, it's not gonna go to the db
+    # It's gonna read the query from the queryset cached
+    queryset = Product.objects.all()
+    # same thing happens if you access an individual element from this queryset
+    # Again Django is going to read this object from the queryset cached
+    queryset[0]
+
+    # One thing you need to know:
+    # Caching happens only if we evaluate the entire queryset 1st
+    # eg => first we are evaluating the entire queryset first & then accessing the invidual element 
+    queryset = Product.objects.all()
+    list(queryset)
+    queryset[0]
+
+    # In contrast if you access an individual element first and then convert our queryset into list, you will end up with 2 
+    # queries sent to db
+    queryset = Product.objects.all()
+    queryset[0]
+    list(queryset)
+
+    return render(request, 'hello.html', {'result': list(queryset)})
+
+
+
 
 
     
