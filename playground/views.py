@@ -216,6 +216,12 @@ def querying_generic_relationship(request):
 
     return render(request, 'hello.html', {'result': list(queryset)})
 
+def custom_manager(request):
+    queryset = TaggedItem.objects.get_tags_for(obj_type=Product, obj_id=1)
+
+    return render(request, 'hello.html', {'result': list(queryset)})
+
+
 
     
 
