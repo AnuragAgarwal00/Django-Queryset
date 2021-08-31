@@ -5,6 +5,7 @@ from django.db.models import Q, Value, F, Func, ExpressionWrapper
 from django.db.models.aggregates import Min, Max, Avg, Count, Sum
 from django.db.models.functions import Concat
 from django.contrib.contenttypes.models import ContentType
+from django.db import transaction
 
 from store.models import Product, OrderItem, Order, Customer, Collection
 from tag.models import TaggedItem
@@ -284,6 +285,36 @@ def updating_objects(request):
     # we can update it directly from the db
     Collection.objects.filter(pk=11).update(featured_product=None)
     return render(request, 'hello.html', {'result': list(collection)})
+
+@transaction.automic()
+def transactions(request):
+    """Sometimes we want to make multiple changes to our database in an atomic way
+    meaning all chnages should be saved together or if one of the changes fails, then
+    all the chnages should be rolled back"""
+    # eg: an order with its items
+    # imagine while saving this order item something crazy happens we get an exceptions
+    # our db is going to be incosistent state, we will have an order without an item
+    # This is where we use Transactions
+    # so we gonna wrap both these obj inside a transaction and either both these will be committed together
+    # or if something fails both these changes will be rolled back
+    # In transaction module we have a transaction.atomic, which we can use as a decorator or the context manager
+    # Sometimes you want to have more control over, what parts of your view func should be inside transaction
+    # In those cases we can use transaction as a context manager
+    with transaction.automic():
+        order = Order()
+        order.customer_id = 11
+        order.save()
+
+        item = OrderItem()
+        item.order = order
+        item.product_id = 1
+        item.quantity = 11
+        item.unit_price = 10
+        item.save()
+    return render(request, 'hello.html', {'result': list(order)})
+    
+
+ 
 
 
 
