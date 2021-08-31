@@ -6,7 +6,7 @@ from django.db.models.aggregates import Min, Max, Avg, Count, Sum
 from django.db.models.functions import Concat
 from django.contrib.contenttypes.models import ContentType
 
-from store.models import Product, OrderItem, Order, Customer
+from store.models import Product, OrderItem, Order, Customer, Collection
 from tag.models import TaggedItem
 
 def sorting(request):
@@ -247,6 +247,21 @@ def understanding_queryset_cache(request):
     list(queryset)
 
     return render(request, 'hello.html', {'result': list(queryset)})
+
+def creating_objects(request):
+    collection = Collection()
+    collection.title = 'Video Games'
+    collection.featured_product = Product(pk=1)
+    # another way to refrence relationship
+    collection.featured_product_id = 1
+    collection.save()
+
+    collection = Collection.objects.create(title='video games', featured_product=Product(pk=1))
+
+    return render(request, 'hello.html', {'result': list(collection)})
+
+
+
 
 
 
