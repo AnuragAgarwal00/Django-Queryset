@@ -6,6 +6,7 @@ from django.db.models.aggregates import Min, Max, Avg, Count, Sum
 from django.db.models.functions import Concat
 from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
+from django.db import connection
 
 from store.models import Product, OrderItem, Order, Customer, Collection
 from tag.models import TaggedItem
@@ -313,7 +314,27 @@ def transactions(request):
         item.save()
     return render(request, 'hello.html', {'result': list(order)})
     
+def executing_raw_sql_queries(request):
+    """Sometimes executing certin queries using django orm can get overly complex
+    you might end up with crazy annotations or filters. In those cases you can write your own sql queries and execute it
+    directly by using django orm"""
+    # DJANO IS GONNA RETURN RAW QUERYSET
+    # THIS QUERSET IS DIFFERNT FROM OTHER QUERYSET
+    # IN THIS CASE THERE IS NO POINT WRITING THIS QUERY BECAUSE DJANGO CAN PERFECTLY GENERATE THIS FOR US
+    # USE THIS APPROACH ONLY WHEN DEALING WITH COMPLEX QUERIES, IF YOU END UP WITH COMPLEX ANNOTATIONS AND FILTERS
+    # AND REALISE WRITING THE SAME QUERY USING THE RAW SQL IS EASIER AND CLEANER THEN GO FOR THIS APPROACH
+    # OR IF THE QUERY DJANGO GENERERATES DOESN'T PERFORM WELL THEN AGAIN THIS IS AGAIN ANOTHER CASE FOR USING THIS APPROACH
+    products = Product.objects.raw('SELECT * FROM STORE_PRODUCT')
 
+    # SOMETIMES YOU WANT TO EXECUTE QUERIES THAT DON'T MAP TO OUR MODEL OBJECTS, IN THOSE CASES WE CAN ACCESS THE DB DIRECTLY
+    # AND BYPASS THE MODEL LAYER, SO INSTEAD OF USING THE RAW METHOD WE GONNA USE THE DIFFERENT APPROACH
+    with connection.cursor() as cursor:
+        cursor.execute()
+    
+    # WE HAVE ANOTHER METHOD HERE CALLPROC() FOR CALLING STORED PROCEDURE
+    THIS IS MUCH BETTER AND CLEANER THAN WRITING YOUR SQL QUERIES IN THE MIDDLE OF YOUR PYTHON CODE 
+    with connection.cursor() as cursor:
+        cursor.callproc('get_customers', [1, 2])
  
 
 
