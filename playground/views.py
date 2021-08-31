@@ -260,6 +260,35 @@ def creating_objects(request):
 
     return render(request, 'hello.html', {'result': list(collection)})
 
+def updating_objects(request):
+    collection = Collection(pk=1)
+    collection.title = 'Games'
+    collection.featured_product = None
+    collection.save()
+
+    # Let's say we only want to update the feature product
+    # something crazy is happening here
+    # django is setting title of this collection to an empty string
+    # And this causes data loss
+    # As part of updating the filed featured_product we end up loosing title for this collection
+    # why does this happens?
+    # This collection obj we have in memory by deault it's title is set to collection.title = " "
+    # So even if you don't explictly update this field, django is gonna include this into sql statement
+    collection = Collection.objects.get(pk=1)
+    collection.featured_product = Product(pk=1)
+    collection.save()
+
+    # so to properly update an object, 1st we have to read it from db, so we have all the values in memory, then we can update it
+    # in app if you have performance issue, try following:-
+    # with update method, we avoid reading object from db 1st, before updating it
+    # we can update it directly from the db
+    Collection.objects.filter(pk=11).update(featured_product=None)
+    return render(request, 'hello.html', {'result': list(collection)})
+
+
+
+
+
 
 
 
