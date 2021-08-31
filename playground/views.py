@@ -9,7 +9,7 @@ from django.db import transaction
 from django.db import connection
 
 from store.models import Product, OrderItem, Order, Customer, Collection
-from tag.models import TaggedItem
+from tags.models import TaggedItem
 
 def sorting(request):
     # Sorting
@@ -183,7 +183,7 @@ def working_with_epression_wrapper(request):
     We use this class when building complex expressions."""
 
     # Let's say we gonna annoate our products and give them a new field called discounted_price
-    If you run this query, you gonna get an exception
+    # If you run this query, you gonna get an exception
     # Expression contains mixed types DecimalField, FloatField. You must set the output field
     queryset = Product.objects.annotate(discounted_price=F('unit_price') * 0.8)
 
@@ -287,7 +287,7 @@ def updating_objects(request):
     Collection.objects.filter(pk=11).update(featured_product=None)
     return render(request, 'hello.html', {'result': list(collection)})
 
-@transaction.automic()
+@transaction.atomic()
 def transactions(request):
     """Sometimes we want to make multiple changes to our database in an atomic way
     meaning all chnages should be saved together or if one of the changes fails, then
@@ -301,7 +301,7 @@ def transactions(request):
     # In transaction module we have a transaction.atomic, which we can use as a decorator or the context manager
     # Sometimes you want to have more control over, what parts of your view func should be inside transaction
     # In those cases we can use transaction as a context manager
-    with transaction.automic():
+    with transaction.atomic():
         order = Order()
         order.customer_id = 11
         order.save()
@@ -332,7 +332,7 @@ def executing_raw_sql_queries(request):
         cursor.execute()
     
     # WE HAVE ANOTHER METHOD HERE CALLPROC() FOR CALLING STORED PROCEDURE
-    THIS IS MUCH BETTER AND CLEANER THAN WRITING YOUR SQL QUERIES IN THE MIDDLE OF YOUR PYTHON CODE 
+    # THIS IS MUCH BETTER AND CLEANER THAN WRITING YOUR SQL QUERIES IN THE MIDDLE OF YOUR PYTHON CODE
     with connection.cursor() as cursor:
         cursor.callproc('get_customers', [1, 2])
  
