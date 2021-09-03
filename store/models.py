@@ -9,9 +9,8 @@ class Collection(models.Model):
         return self.title
 
     class Meta:
+        # SORT THE COLLECTION BY THEIR TITLE IN ASC IN ADMIN PANEL
         ordering = ['title']
-    
-
 
 class Promotion(models.Model):
     description = models.CharField(max_length=255)
