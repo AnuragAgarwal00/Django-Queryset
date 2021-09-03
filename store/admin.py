@@ -6,12 +6,31 @@ from django.urls import reverse
 
 from .models import Collection, Product, Customer, Order
 
-#register your model here
+class InventoryFilter(admin.SimpleListFilter):
+    title = 'By Inventory'
+    # this parameter_name will be used in the query_string
+    parameter_name = 'inventory'
+
+    def lookups(self, request, model_admin):
+        # with this method we should specify what item should apper in filter list
+        # each tuple in list represent filter name list
+        # In EACH TUPLE WE SHOULD HAVE 2 VALUES
+        # 1ST VALE IS THE ACTUAL VALUE, WE USE FOR FILTERING
+        # 2ND VALUE IS THE HUMAN READABLE DESCRIPTION
+        return [
+            ('<10', 'Low'),
+        ]
+    
+    def queryset(self, request, queryset):
+        # THIS IS WHERE WE IMPLEMENT THE FILTERING LOGIC
+        if self.value() == '<10':
+            return queryset.filter(inventory__lt=10)
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     list_display = ['title', 'unit_price', 'inventory_status', 'collection_title']
     list_editable = ['unit_price']
+    list_filter = ['collection', 'last_update', InventoryFilter]
     # show 10 product per page
     list_per_page = 10
     list_select_related = ['collection']
@@ -36,14 +55,18 @@ class ProductAdmin(admin.ModelAdmin):
     def collection_title(self, product):
         return product.collection.title
 
+    # CREATING OUR OWN CUSTOM FILTERS
+    # ADD A FILTER TO SEE PRODUCTS WITH LOW INVENTORY
+
 
 
 @admin.register(Customer)
 class CustomerAdmin(admin.ModelAdmin):
     list_display = ['first_name', 'last_name', 'membership', 'orders_count']
     list_editable = ['membership']
-    ordering = ['first_name', 'last_name']
     list_per_page = 10
+    ordering = ['first_name', 'last_name']
+    search_fields = ['first_name__istartswith', 'last_name__istartswith']
 
     @admin.display(ordering='orders_count')
     def orders_count(self, customer):
