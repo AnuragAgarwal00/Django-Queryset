@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.db.models.aggregates import Count
+
 
 from .models import Collection, Product, Customer, Order
 
@@ -41,13 +43,26 @@ class CustomerAdmin(admin.ModelAdmin):
     ordering = ['first_name', 'last_name']
     list_per_page = 10
 
-@admin.register(Order)
+@admin.register(Collection)
+class CollectionAdmin(admin.ModelAdmin):
+    """SOMETIMES WE NEED TO OVERRIDE THE BASE QUERYSET USED  FOR RENDERING A LIST PAGE
+    EG => IN LIST OF COLLECTION, YOU NEED TO ADD A COLUMN TO SHOW NO. OF PRODUCTS IN EACH COLLECTION"""
+    list_display = ['title', 'product_count']
+
+    @admin.display(ordering='products_count')
+    def product_count(self, collection):
+        return collection.products_count
+
+    def get_queryset(self, request):
+        """EVERY MODEL ADMIN HAS A METHOD CALLED GETQUERYSET WHICH YOU CAN OVERRIDE"""
+        return super(CollectionAdmin, self).get_queryset(request).annotate(
+            products_count=Count('product')
+        )
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ['placed_at', 'payment_status', 'customer', 'customer_membership']
+    list_display = ['id', 'placed_at', 'payment_status', 'customer', 'customer_membership']
     list_select_related = ['customer']
     ordering = ['placed_at']
     list_per_page = 10
 
     def customer_membership(self, order):
         return order.customer.membership
-admin.site.register(Collection)
