@@ -1,4 +1,4 @@
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.db.models.aggregates import Count
 from django.utils.html import format_html, urlencode
 from django.urls import reverse
@@ -7,6 +7,8 @@ from django.urls import reverse
 from .models import Collection, Product, Customer, Order
 
 class InventoryFilter(admin.SimpleListFilter):
+    """CREATING OUR OWN CUSTOM FILTERS
+     ADD A FILTER TO SEE PRODUCTS WITH LOW INVENTORY"""
     title = 'By Inventory'
     # this parameter_name will be used in the query_string
     parameter_name = 'inventory'
@@ -28,6 +30,7 @@ class InventoryFilter(admin.SimpleListFilter):
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
+    actions = ['clear_inventory']
     list_display = ['title', 'unit_price', 'inventory_status', 'collection_title']
     list_editable = ['unit_price']
     list_filter = ['collection', 'last_update', InventoryFilter]
@@ -55,8 +58,24 @@ class ProductAdmin(admin.ModelAdmin):
     def collection_title(self, product):
         return product.collection.title
 
-    # CREATING OUR OWN CUSTOM FILTERS
-    # ADD A FILTER TO SEE PRODUCTS WITH LOW INVENTORY
+    @admin.action(description="Clear Inventory")
+    def clear_inventory(self, request, queryset):
+        # EVERY LIST PAGE COMES WITH A DELETE ACTION FOR DELETING MULTIPLE OBJECTS IN ONE GO.
+        # BUT WE CAN ALSO EXTEND THIS LIST & REGISTER OUR OWN CUSTOM ACTION
+        # LET'S SAY WE WANT TO DEFINE OUR OWN CUSTOM ACTIONS FOR CLEARING THE INVENTORY OF
+        # A BUNCH OF PRODUCTS IN ONE GO, WE WANT TO SET THEIR INVENTORY = 0
+        # .update will immediately update the db & return the no. of updated records 
+        updated_count = queryset.update(inventory=0)
+        
+        # NOW TO SHOW A MESSAGE TO THE USER
+        # EVERY MODELADMIN CONTAINS THIS METHOD TO SHOW MSG TO USERS
+        self.message_user(
+            request,
+            F'{updated_count} products were successfully updated!',
+            messages.ERROR)
+
+
+  
 
 
 
