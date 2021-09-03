@@ -40,10 +40,25 @@ class ProductAdmin(admin.ModelAdmin):
 
 @admin.register(Customer)
 class CustomerAdmin(admin.ModelAdmin):
-    list_display = ['first_name', 'last_name', 'membership']
+    list_display = ['first_name', 'last_name', 'membership', 'orders_count']
     list_editable = ['membership']
     ordering = ['first_name', 'last_name']
     list_per_page = 10
+
+    @admin.display(ordering='orders_count')
+    def orders_count(self, customer):
+        url = (
+            reverse('admin:store_order_changelist') + 
+            '?' +
+            urlencode({
+                'customer__id': str(customer.id)
+            }))
+        return format_html('<a href="{}">{}</a>', url, customer.orders_count)
+    
+    def get_queryset(self, request):
+        return super(CustomerAdmin, self).get_queryset(request).annotate(
+            orders_count=Count('order')
+        )
 
 @admin.register(Collection)
 class CollectionAdmin(admin.ModelAdmin):
@@ -91,6 +106,7 @@ class CollectionAdmin(admin.ModelAdmin):
             products_count=Count('product')
         )
     
+@admin.register(Order)    
 class OrderAdmin(admin.ModelAdmin):
     list_display = ['id', 'placed_at', 'payment_status', 'customer', 'customer_membership']
     list_select_related = ['customer']
