@@ -30,6 +30,12 @@ class InventoryFilter(admin.SimpleListFilter):
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
+    # CUSTOMIZING FORM FOR ADDING OR UPDATING MODELS
+    autocomplete_fields = ['collection']
+    # fields = ['title', 'slug']
+    exclude = ['promotions']
+    # readonly_fields = ['title']
+    prepopulated_fields = {'slug':('title',)}
     actions = ['clear_inventory']
     list_display = ['title', 'unit_price', 'inventory_status', 'collection_title']
     list_editable = ['unit_price']
@@ -107,6 +113,7 @@ class CollectionAdmin(admin.ModelAdmin):
     """SOMETIMES WE NEED TO OVERRIDE THE BASE QUERYSET USED  FOR RENDERING A LIST PAGE
     EG => IN LIST OF COLLECTION, YOU NEED TO ADD A COLUMN TO SHOW NO. OF PRODUCTS IN EACH COLLECTION"""
     list_display = ['title', 'product_count']
+    search_fields = ['title']
 
     @admin.display(ordering='products_count')
     def product_count(self, collection):
@@ -150,6 +157,7 @@ class CollectionAdmin(admin.ModelAdmin):
     
 @admin.register(Order)    
 class OrderAdmin(admin.ModelAdmin):
+    autocomplete_fields = ['customer']
     list_display = ['id', 'placed_at', 'payment_status', 'customer', 'customer_membership']
     list_select_related = ['customer']
     ordering = ['placed_at']
