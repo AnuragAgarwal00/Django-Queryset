@@ -1,5 +1,7 @@
 from django.contrib import admin
 from django.db.models.aggregates import Count
+from django.utils.html import format_html, urlencode
+from django.urls import reverse
 
 
 from .models import Collection, Product, Customer, Order
@@ -51,13 +53,44 @@ class CollectionAdmin(admin.ModelAdmin):
 
     @admin.display(ordering='products_count')
     def product_count(self, collection):
-        return collection.products_count
+        # HOW TO ADD LINKS?
+        # WHEN WE CLIK ON THIS LINK, WE CAN SEE THE PRODUCTS IN EACH COLLECTION
+        # INSTAED OF RETURNING A NO. WE SHOULD RETURN A STRING CONTAINING AN HTML LINK
+        # TO GENERATE AN HTML LINK WE SHOULD IMPORT A UTILITY FUNCTIONS ON THE TOP format_html
+        # HOW TO SEND OUR USERS TO THE PRODUCT PAGE?
+        # IN PRODUCT PAGE JUST LOOK AT THE URL admin/store/product
+        # WE DON'T WANT TO HARD CODE THIS URL INTO OUR CODE BECZ THIS URL CAN CHANGE IN THE FUTURE
+        # SO WE SHOULD SHOULD ASK DJANGO TO GIVE US THE URL OF THIS PAGE AND TO DO THAT WE HAVE TO
+        # IMPORT ANOTHER UTILITY FUNCTION ON TOP - reverse
+        # HERE YOU WILL CALL THE REVERSE FUNCTION AND GIVE IT A SPECIAL AGRUMENT
+        # reverse('admin:AppName_Model_page')
+        # what app are we working on => Store App
+        # what is the target model?
+        # IT'S THE PRODUCT MODEL BECZ WE WANT TO SEND THE USERS TO THE PRODUCT LIST PAGE
+        # WHAT IS THE TARGET PAGE?
+        # ITS CALLED "changelist" (list of products is called changelist)
+        # we GO TO THE LIST OF PRODUCTS BUT THERE IS NO FILTERS APPLIED ON PRODUCT PAGE?
+        # TO APPLY A FILTER WE NEED TO APPEND A QUERYSTRING TO THE URL 
+        # SO WE TYPE  ?Collection_id=1, so we need to add this part dynamically
+        # ? represents the begining of the querystring
+        # for LONG STRING PLZ PERFER WRAPPING THE STATEMENTS INSIDE PARENTHESIS
+        # for genrating string we use urlencode function
+        # we call urlencode func and give it a dictionary becz a querystring can contain multiple key-value pairs
+        # thats why we use a dictionary here
+        url = (
+            reverse('admin:store_product_changelist') + 
+            '?' + 
+            urlencode({
+                'collection_id': str(collection.id)
+            }))
+        return format_html('<a href="{}">{}</a>', url, collection.products_count)
 
     def get_queryset(self, request):
         """EVERY MODEL ADMIN HAS A METHOD CALLED GETQUERYSET WHICH YOU CAN OVERRIDE"""
         return super(CollectionAdmin, self).get_queryset(request).annotate(
             products_count=Count('product')
         )
+    
 class OrderAdmin(admin.ModelAdmin):
     list_display = ['id', 'placed_at', 'payment_status', 'customer', 'customer_membership']
     list_select_related = ['customer']
