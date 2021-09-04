@@ -2,9 +2,11 @@ from django.contrib import admin, messages
 from django.db.models.aggregates import Count
 from django.utils.html import format_html, urlencode
 from django.urls import reverse
+from django.contrib.contenttypes.admin import GenericStackedInline, GenericTabularInline
 
 
 from .models import Collection, Product, Customer, Order, OrderItem
+from tags.models import TaggedItem
 
 class InventoryFilter(admin.SimpleListFilter):
     """CREATING OUR OWN CUSTOM FILTERS
@@ -28,6 +30,11 @@ class InventoryFilter(admin.SimpleListFilter):
         if self.value() == '<10':
             return queryset.filter(inventory__lt=10)
 
+
+class TagInline(GenericTabularInline):
+    autocomplete_fields = ['tag']
+    model = TaggedItem
+
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     # CUSTOMIZING FORM FOR ADDING OR UPDATING MODELS
@@ -35,6 +42,8 @@ class ProductAdmin(admin.ModelAdmin):
     # fields = ['title', 'slug']
     exclude = ['promotions']
     # readonly_fields = ['title']
+    # HERE IN OUR PRODUCT FORM WE WANT ADD A NEW SECTION FOR MANAGING THE TAGS
+    inlines = [TagInline]
     prepopulated_fields = {'slug':('title',)}
     actions = ['clear_inventory']
     list_display = ['title', 'unit_price', 'inventory_status', 'collection_title']
@@ -179,5 +188,5 @@ class OrderAdmin(admin.ModelAdmin):
     def customer_membership(self, order):
         return order.customer.membership
 
-# CURRENTLY WE CAN CREATE A NEW ORDER BUT THERE IS NO WAY TO MANAGE ORDER ITEMS
+
 
