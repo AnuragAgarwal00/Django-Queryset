@@ -4,7 +4,7 @@ from django.utils.html import format_html, urlencode
 from django.urls import reverse
 
 
-from .models import Collection, Product, Customer, Order
+from .models import Collection, Product, Customer, Order, OrderItem
 
 class InventoryFilter(admin.SimpleListFilter):
     """CREATING OUR OWN CUSTOM FILTERS
@@ -43,6 +43,7 @@ class ProductAdmin(admin.ModelAdmin):
     # show 10 product per page
     list_per_page = 10
     list_select_related = ['collection']
+    search_fields = ['title']
     # for complete list of customization just google DjangoModelAdmin
 
     # ADDING COMPUTED COULMN TO THE LIST OF PRODUCT
@@ -154,10 +155,22 @@ class CollectionAdmin(admin.ModelAdmin):
         return super(CollectionAdmin, self).get_queryset(request).annotate(
             products_count=Count('product')
         )
+
+
+class OrderItemInline(admin.TabularInline):
+    # OrderItemInline indirectly inherits from ModelAdmin class
+    # All the attributes in ModelAdmin also applies here
+    autocomplete_fields = ['product']
+    # for resetting placeholders
+    extra = 1
+    min_num = 1
+    max_num = 2
+    model = OrderItem
     
 @admin.register(Order)    
 class OrderAdmin(admin.ModelAdmin):
     autocomplete_fields = ['customer']
+    inlines = [OrderItemInline]
     list_display = ['id', 'placed_at', 'payment_status', 'customer', 'customer_membership']
     list_select_related = ['customer']
     ordering = ['placed_at']
@@ -165,3 +178,6 @@ class OrderAdmin(admin.ModelAdmin):
 
     def customer_membership(self, order):
         return order.customer.membership
+
+# CURRENTLY WE CAN CREATE A NEW ORDER BUT THERE IS NO WAY TO MANAGE ORDER ITEMS
+
