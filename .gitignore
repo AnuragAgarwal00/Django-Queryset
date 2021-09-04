@@ -2,3 +2,4 @@
 pipfile
 pipfile.lock
 db.sqlite3
+*cpython*
