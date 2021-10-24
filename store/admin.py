@@ -156,7 +156,7 @@ class CollectionAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         """EVERY MODEL ADMIN HAS A METHOD CALLED GETQUERYSET WHICH YOU CAN OVERRIDE"""
         return super(CollectionAdmin, self).get_queryset(request).annotate(
-            products_count=Count('product')
+            products_count=Count('products')
         )
 
 
